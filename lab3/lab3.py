@@ -3,12 +3,12 @@ from OpenGL.GLU import *
 from scipy import optimize
 from pyglet import *
 from pygame.locals import *
+from sympy import Symbol
 import pygame
 import numpy as np
 import sys
 import argparse
 import sympy
-from sympy import Symbol
 import colour
 
 BOOTH_F_STR        = '(x + 2*y - 7)**2 + (2*x + y - 5)**2'
@@ -20,7 +20,7 @@ CIRCLE_F_STR       = '(x**2 + y**2)**0.5'
 CIRCLE2_F_STR      = '((x-10)**2 + (y-10)**2)**0.5'
 
 class PSOSwarm():
-    def __init__(self, pop_size, b_lo, b_up, w, fi_p, fi_g, f_str, speed_div, speed_iter, update_coef, max_iter, trace_len):
+    def __init__(self, pop_size, b_lo, b_up, w, fi_p, fi_g, f_str, speed_div, speed_iter, max_iter, trace_len):
         self.w = w
         self.fi_p = fi_p
         self.fi_g = fi_g
@@ -29,7 +29,6 @@ class PSOSwarm():
         self.g = self.find_best_pos()
         self.speed_iter = speed_iter
         self.speed_div = speed_div
-        self.update_coef = update_coef
         self.iter = 0
         self.max_iter = max_iter
         self.trace_len = trace_len
@@ -45,12 +44,6 @@ class PSOSwarm():
                 min_val = self.f(best_pos[0], best_pos[1])
 
         return np.array([best_pos[0], best_pos[1], 0])
-
-    def update_coefs(self):
-        self.iter += 1
-        self.w = (0.4 / self.max_iter**2) * (self.iter - self.max_iter)**2 + 0.4
-        self.fi_p = -3 * self.iter / self.max_iter + 3.5
-        self.fi_g =  3 * self.iter / self.max_iter + 0.5
  
     def alg_iteration(self):
         for p in self.particles:
@@ -68,9 +61,6 @@ class PSOSwarm():
                     self.g = p.best_pos
 
             p.pts.append(p.pos[:])
-
-        if self.update_coef:
-            self.update_coefs()
 
     def calculate_curve(self):
         b =  1/6 * np.array([
@@ -199,14 +189,13 @@ def parse_input():
     parser = argparse.ArgumentParser()
     parser.add_argument('--f', default=CIRCLE_F_STR) 
     parser.add_argument('--pop_size', default=15, type=int) 
-    parser.add_argument('--w', default=0.72984, type=float)  
-    parser.add_argument('--fi_p', default=2.05, type=float) 
-    parser.add_argument('--fi_g', default=2.05, type=float) 
+    parser.add_argument('--w', default=0.5, type=float)  
+    parser.add_argument('--fi_p', default=2, type=float) 
+    parser.add_argument('--fi_g', default=2, type=float) 
     parser.add_argument('--b_lo', default=-20, type=float)
     parser.add_argument('--b_up', default=20, type=float)
 
     parser.add_argument('--err', default=10**(-2), type=float) 
-    parser.add_argument('--update_coef', default=False, choices=[False, True]) 
     parser.add_argument('--max_iter', default=10**4, type=int) 
 
     parser.add_argument('--speed_div', default=10, type=float) 
@@ -239,7 +228,6 @@ def main():
         f_str=args.f,
         speed_div = args.speed_div,
         speed_iter = args.speed_iter,
-        update_coef = args.update_coef,
         max_iter = args.max_iter,
         trace_len =  args.trace_len
     )
